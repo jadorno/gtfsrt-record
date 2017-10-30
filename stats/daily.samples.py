@@ -46,9 +46,4 @@ for i in range(delta.days):
 			}
 		]
 	}).sort([("header.timestamp", pymongo.ASCENDING)]);
-	for result in query:
-		myData.append(strTimestamp(result, "%Y-%m-%d"))
-
-for i in range(delta.days + 1):
-	current_date = str(d1 + timedelta(days=i))
-	print(current_date+" "+str(myData.count(current_date)))
+	print((d1 + dt.timedelta(days=i)).strftime("%Y-%m-%d")+" "+str(query.count()))

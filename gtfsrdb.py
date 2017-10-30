@@ -1,56 +1,67 @@
-from google.protobuf.json_format import MessageToJson
-from pymongo.errors import DuplicateKeyError
-from urllib.request import urlopen
-from optparse import OptionParser
-from pymongo import MongoClient
+import requests
 import json
 import time
 import sys
+import os
+
+from google.protobuf.json_format import MessageToJson
 sys.path.insert(0, 'protobuf')
-import gtfs_realtime_pb2
+import gtfs_realtime_pb2 as gtfsrt
 
-p = OptionParser()
+with open(sys.argv[1]) as config_file:
+        config = json.load(config_file)
 
-p.add_option('-t', '--trip-updates', dest='tripUpdatesURL', default=None, help='Trip Updates URL', metavar='URL')
-p.add_option('-a', '--alerts', dest='alertsURL', default=None, help='Alerts URL', metavar='URL')
-p.add_option('-p', '--vehicle-positions', dest='vehiclePositionsURL', default=None, help='Vehicle Positions URL', metavar='URL')
-p.add_option('-d', '--database', dest='dbName', default=None, help='Database Name', metavar='DB')
-p.add_option('-c', '--connection', dest='connURL', default=None, help='Database Connection', metavar='mongo://URL')
-p.add_option('-w', '--wait', dest='sleepTime', default=30, type='int', metavar='SECS', help='Time to wait between requests (in seconds)')
+if not config['database_upload'] and not config['proto_download']:
+	print("You have Protobuffer Download and Database Upload Disabled.")
+	print("The program doesn't do anything else.")
+	exit()
 
-opts, args = p.parse_args()
+if config['database_upload']:
+	import pymongo
 
-if opts.connURL == None:
-	print('No database connection specified!')
-	exit(1)
+	if os.environ.get('URL') != None:
+		config['conn_url'] = os.environ.get('URL')
+	client = pymongo.MongoClient(config['conn_url'])
+	db = client[config['conn_db']]
 
-if opts.dbName == None:
-	print('No database name specified!')
-	exit(1)
-
-client = MongoClient(opts.connURL)
-db = client[opts.dbName]
+	for table_name in ["trip_updates", "vehicle_positions"]:
+		timestamp_index_exist = False
+		if table_name in db.collection_names():
+			index_info = db[table_name].index_information()
+			for index in index_info:
+				for key in index_info[index]['key']:
+					for field in key:
+						if field == "header.timestamp":
+							timestamp_index_exist = True
+		if not timestamp_index_exist:
+			print("No Timestamp Index Located for "+table_name+". Creating...")
+			db[table_name].create_index(
+				[("header.timestamp", pymongo.DESCENDING)],
+				unique=True,background=True
+			)
 
 while True:
 
-	if opts.tripUpdatesURL != None:
-		fm = gtfs_realtime_pb2.FeedMessage()
-		fm.ParseFromString(urlopen(opts.tripUpdatesURL).read())
-		data = json.loads(MessageToJson(fm))
-		try:
-			db['tripUpdates'].insert_one(data)
-			print(data['header']['timestamp'],"- Inserted Trip Update Data.")
-		except DuplicateKeyError:
-			print(data['header']['timestamp'],"- DB Rejected Trip Update Data. Duplicate Keys.")
+	for table_name in ["trip_updates", "vehicle_positions"]:
 
-	if opts.vehiclePositionsURL != None:
-		fm = gtfs_realtime_pb2.FeedMessage()
-		fm.ParseFromString(urlopen(opts.vehiclePositionsURL).read())
+		r = requests.get(config[table_name+'_url'])
+		fm = gtfsrt.FeedMessage()
+		fm.ParseFromString(r.content)
 		data = json.loads(MessageToJson(fm))
-		try:
-			db['vehiclePositions'].insert_one(data)
-			print(data['header']['timestamp'],"- Inserted Vehicle Position Data.")
-		except DuplicateKeyError:
-			print(data['header']['timestamp'],"- DB Rejected Vehicle Position Data. Duplicate Keys.")
 
-	time.sleep(opts.sleepTime)
+		if config['proto_download']:
+			outputFile = config['proto_path']+'/'+data['header']['timestamp']+"_"+table_name+".proto"
+			f = open(outputFile, 'wb')
+			f.write(r.content)
+			f.close()
+			print(data['header']['timestamp'],"- Protobuf File Written on "+outputFile)
+
+		if config['database_upload']:
+			data['header']['timestamp'] = int(data['header']['timestamp'])
+			try:
+				db[table_name].insert_one(data)
+				print(str(data['header']['timestamp']),"- DB Inserted to "+table_name+".")
+			except DuplicateKeyError:
+				print(str(data['header']['timestamp']),"- DB Rejected to "+table_name+". Duplicate Keys.")
+
+	time.sleep(config['sleep_time'])
