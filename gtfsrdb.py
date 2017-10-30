@@ -50,7 +50,7 @@ while True:
 		data = json.loads(MessageToJson(fm))
 
 		if config['proto_download']:
-			outputFile = config['proto_path']+'/'+data['header']['timestamp']+"_"+table_name+".proto"
+			outputFile = config['proto_path']+'/'+data['header']['timestamp']+"_"+table_name+".pb"
 			f = open(outputFile, 'wb')
 			f.write(r.content)
 			f.close()
