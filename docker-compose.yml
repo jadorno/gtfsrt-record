@@ -19,6 +19,42 @@ services:
       - URL=mongodb://jorgea1:7fL47sqc9YZy@db:27017/?authSource=admin
     networks:
       - transit-net 
+  mbta:
+    build: ./
+    volumes:
+      - ./data/mbta:/usr/src/app/data
+      - ./config/config.MBTA.gtfs.json:/usr/src/app/config.json
+    environment:
+      - URL=mongodb://jorgea1:7fL47sqc9YZy@db:27017/?authSource=admin
+    networks:
+      - transit-net 
+  via:
+    build: ./
+    volumes:
+      - ./data/via:/usr/src/app/data
+      - ./config/config.VIA.gtfs.json:/usr/src/app/config.json
+    environment:
+      - URL=mongodb://jorgea1:7fL47sqc9YZy@db:27017/?authSource=admin
+    networks:
+      - transit-net 
+  metrotransit:
+    build: ./
+    volumes:
+      - ./data/metrotransit:/usr/src/app/data
+      - ./config/config.MetroTransit.gtfs.json:/usr/src/app/config.json
+    environment:
+      - URL=mongodb://jorgea1:7fL47sqc9YZy@db:27017/?authSource=admin
+    networks:
+      - transit-net 
+#  soundtransit:
+#    build: ./
+#    volumes:
+#      - ./data/soundtransit:/usr/src/app/data
+#      - ./config/config.SoundTransit.gtfs.json:/usr/src/app/config.json
+#    environment:
+#      - URL=mongodb://jorgea1:7fL47sqc9YZy@db:27017/?authSource=admin
+#    networks:
+#      - transit-net 
 networks:
     transit-net:
         external:
