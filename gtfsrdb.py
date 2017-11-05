@@ -42,6 +42,8 @@ if config['database_upload']:
 
 while True:
 
+	increaseSleep = False
+
 	for table_name in config['gtfsrt_enabled']:
 
 		r = requests.get(config[table_name+'_url'])
@@ -51,6 +53,9 @@ while True:
 
 		if config['proto_download']:
 			outputFile = config['proto_path']+'/'+data['header']['timestamp']+"_"+table_name+".pb"
+			if os.path.isfile(outputFile):
+				print(str(data['header']['timestamp']),"- Protobuf File Duplicate on "+outputFile)
+				increaseSleep = True				
 			f = open(outputFile, 'wb')
 			f.write(r.content)
 			f.close()
@@ -61,7 +66,13 @@ while True:
 			try:
 				db[table_name].insert_one(data)
 				print(str(data['header']['timestamp']),"- DB Inserted to "+table_name+".")
-			except DuplicateKeyError:
+			except pymongo.errors.DuplicateKeyError:
 				print(str(data['header']['timestamp']),"- DB Rejected to "+table_name+". Duplicate Keys.")
+				increaseSleep = True
 
+	if config['adaptive_sleep'] and increaseSleep:
+		config['sleep_time'] = config['sleep_time'] + 5
+		print("Increased Sleep Time to "+str(config['sleep_time']))
+	else: 
+		print("Sleeping for "+str(config['sleep_time']))
 	time.sleep(config['sleep_time'])
