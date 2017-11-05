@@ -9,8 +9,16 @@ services:
     environment:
       - URL=mongodb://jorgea1:7fL47sqc9YZy@db:27017/?authSource=admin
     networks:
+      - transit-net
+  psta:
+    build: ./
+    volumes:
+      - ./data/psta:/usr/src/app/data
+      - ./config/config.PSTA.gtfs.json:/usr/src/app/config.json
+    environment:
+      - URL=mongodb://jorgea1:7fL47sqc9YZy@db:27017/?authSource=admin
+    networks:
       - transit-net 
-
 networks:
     transit-net:
         external:

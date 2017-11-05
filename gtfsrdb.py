@@ -24,7 +24,7 @@ if config['database_upload']:
 	client = pymongo.MongoClient(config['conn_url'])
 	db = client[config['conn_db']]
 
-	for table_name in ["trip_updates", "vehicle_positions"]:
+	for table_name in config['gtfsrt_enabled']:
 		timestamp_index_exist = False
 		if table_name in db.collection_names():
 			index_info = db[table_name].index_information()
@@ -42,7 +42,7 @@ if config['database_upload']:
 
 while True:
 
-	for table_name in ["trip_updates", "vehicle_positions"]:
+	for table_name in config['gtfsrt_enabled']:
 
 		r = requests.get(config[table_name+'_url'])
 		fm = gtfsrt.FeedMessage()
