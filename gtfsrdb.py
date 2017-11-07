@@ -4,6 +4,7 @@ import time
 import sys
 import os
 
+from google.protobuf.message import DecodeError
 from google.protobuf.json_format import MessageToJson
 sys.path.insert(0, 'protobuf')
 import gtfs_realtime_pb2 as gtfsrt
@@ -46,29 +47,36 @@ while True:
 
 	for table_name in config['gtfsrt_enabled']:
 
-		r = requests.get(config[table_name+'_url'])
-		fm = gtfsrt.FeedMessage()
-		fm.ParseFromString(r.content)
-		data = json.loads(MessageToJson(fm))
+		try:
 
-		if config['proto_download']:
-			outputFile = config['proto_path']+'/'+data['header']['timestamp']+"_"+table_name+".pb"
-			if os.path.isfile(outputFile):
-				print(str(data['header']['timestamp']),"- Protobuf File Duplicate on "+outputFile)
-				increaseSleep = True				
-			f = open(outputFile, 'wb')
-			f.write(r.content)
-			f.close()
-			print(data['header']['timestamp'],"- Protobuf File Written on "+outputFile)
+			r = requests.get(config[table_name+'_url'], timeout=10)
+			fm = gtfsrt.FeedMessage()
+			fm.ParseFromString(r.content)
+			data = json.loads(MessageToJson(fm))
 
-		if config['database_upload']:
-			data['header']['timestamp'] = int(data['header']['timestamp'])
-			try:
-				db[table_name].insert_one(data)
-				print(str(data['header']['timestamp']),"- DB Inserted to "+table_name+".")
-			except pymongo.errors.DuplicateKeyError:
-				print(str(data['header']['timestamp']),"- DB Rejected to "+table_name+". Duplicate Keys.")
-				increaseSleep = True
+			if config['proto_download']:
+				outputFile = config['proto_path']+'/'+data['header']['timestamp']+"_"+table_name+".pb"
+				if os.path.isfile(outputFile):
+					print(str(data['header']['timestamp']),"- Protobuf File Duplicate on "+outputFile)
+					increaseSleep = True				
+				f = open(outputFile, 'wb')
+				f.write(r.content)
+				f.close()
+				print(data['header']['timestamp'],"- Protobuf File Written on "+outputFile)
+
+			if config['database_upload']:
+				data['header']['timestamp'] = int(data['header']['timestamp'])
+				try:
+					db[table_name].insert_one(data)
+					print(str(data['header']['timestamp']),"- DB Inserted to "+table_name+".")
+				except pymongo.errors.DuplicateKeyError:
+					print(str(data['header']['timestamp']),"- DB Rejected to "+table_name+". Duplicate Keys.")
+					increaseSleep = True
+
+		except requests.exceptions.ConnectionError:
+			print("Connection Error to: "+config[table_name+'_url'])
+		except DecodeError:
+			print("Unable to decode: "+config[table_name+'_url'])
 
 	if config['adaptive_sleep'] and increaseSleep:
 		config['sleep_time'] = config['sleep_time'] + 5
