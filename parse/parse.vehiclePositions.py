@@ -88,7 +88,7 @@ for line in f:
 		except DuplicateKeyError:
 			if config.connMerge:
 				print('DB Rejected Vehicle Position Data. Duplicate Keys. Merging...')
-				onlineData = db['vehicle_positions'].find_one({"header.timestamp": vehicle_position.header.timestamp})
+				onlineData = db['vehicle_positions'].find_one({"header.timestamp": data['header']['timestamp']})
 				mergeEntity = onlineData['entity'] + curr_data
 
 

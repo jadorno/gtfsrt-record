@@ -164,7 +164,7 @@ for line in f_1:
 		except DuplicateKeyError:
 			if config.connMerge:
 				print('DB Rejected Trip Update Data. Duplicate Keys. Merging...')
-				onlineData = db['trip_updates'].find_one({"header.timestamp": trip_update.header.timestamp})
+				onlineData = db['trip_updates'].find_one({"header.timestamp": data['header']['timestamp']})
 				mergeEntity = onlineData['entity'] + curr_data
 
 

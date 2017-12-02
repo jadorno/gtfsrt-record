@@ -20,8 +20,8 @@ if not config['database_upload'] and not config['proto_download']:
 if config['database_upload']:
 	import pymongo
 
-	if os.environ.get('URL') != None:
-		config['conn_url'] = os.environ.get('URL')
+	if os.environ.get('DB_URL') != None:
+		config['conn_url'] = os.environ.get('DB_URL')
 	client = pymongo.MongoClient(config['conn_url'])
 	db = client[config['conn_db']]
 
@@ -73,10 +73,20 @@ while True:
 					print(str(data['header']['timestamp']),"- DB Rejected to "+table_name+". Duplicate Keys.")
 					increaseSleep = True
 
-		except requests.exceptions.ConnectionError:
+		except requests.exceptions.ReadTimeout as e:
 			print("Connection Error to: "+config[table_name+'_url'])
+			print(e)
+		except requests.exceptions.ConnectionError as e:
+			print("Connection Error to: "+config[table_name+'_url'])
+			print(e)
+		except requests.exceptions.ChunkedEncodingError as e:
+			print("Connection Error to: "+config[table_name+'_url'])
+			print(e)
 		except DecodeError:
 			print("Unable to decode: "+config[table_name+'_url'])
+		except KeyError as e:
+			print("Missing Value in Protobuffer from: "+config[table_name+'_url'])
+			print(e)
 
 	if config['adaptive_sleep'] and increaseSleep:
 		config['sleep_time'] = config['sleep_time'] + 5
