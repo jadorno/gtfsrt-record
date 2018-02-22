@@ -9,6 +9,7 @@ from google.protobuf.json_format import MessageToJson
 sys.path.insert(0, 'protobuf')
 import gtfs_realtime_pb2 as gtfsrt
 
+PB_OUTPUT_DIR = "data"
 
 config = {}
 
@@ -17,7 +18,7 @@ if os.environ.get('API_URL') is not None:
 	config['DB_URL'] = os.environ.get('DB_URL', req['DB_URL'])
 	config['DB_UPLOAD'] = os.environ.get('DB_UPLOAD', req['DB_UPLOAD'])
 	config['PB_DOWNLOAD'] = os.environ.get('PB_DOWNLOAD', req['PB_DOWNLOAD'])
-	config['PB_PATH'] = os.environ.get('PB_PATH', req['PB_PATH'])
+	config['PB_PATH'] = os.environ.get('PB_PATH', PB_OUTPUT_DIR)
 	config['SLEEP_TIME'] = os.environ.get('SLEEP_TIME', req['SLEEP_TIME'])
 	config['SLEEP_ADAPTIVE'] = os.environ.get('SLEEP_ADAPTIVE', req['SLEEP_ADAPTIVE'])
 	config['URL_TRIP_UPDATES_ENABLED'] = os.environ.get('URL_TRIP_UPDATES_ENABLED', req['URL_TRIP_UPDATES_ENABLED'])
@@ -30,7 +31,7 @@ else:
 	config['DB_URL'] = os.environ.get('DB_URL')
 	config['DB_UPLOAD'] = os.environ.get('DB_UPLOAD')
 	config['PB_DOWNLOAD'] = os.environ.get('PB_DOWNLOAD')
-	config['PB_PATH'] = os.environ.get('PB_PATH')
+	config['PB_PATH'] = os.environ.get('PB_PATH', PB_OUTPUT_DIR)
 	config['SLEEP_TIME'] = os.environ.get('SLEEP_TIME')
 	config['SLEEP_ADAPTIVE'] = os.environ.get('SLEEP_ADAPTIVE')
 	config['URL_TRIP_UPDATES_ENABLED'] = os.environ.get('URL_TRIP_UPDATES_ENABLED')
