@@ -14,7 +14,7 @@ PB_OUTPUT_DIR = "data"
 config = {}
 
 if os.environ.get('API_URL') is not None:
-	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-config").json()
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-config", timeout=10).json()
 	config['DB_URL'] = os.environ.get('DB_URL', req['DB_URL'])
 	config['DB_UPLOAD'] = os.environ.get('DB_UPLOAD', req['DB_UPLOAD'])
 	config['PB_DOWNLOAD'] = os.environ.get('PB_DOWNLOAD', req['PB_DOWNLOAD'])
