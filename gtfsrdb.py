@@ -14,19 +14,41 @@ PB_OUTPUT_DIR = "data"
 config = {}
 
 if os.environ.get('API_URL') is not None:
-	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-config", timeout=10).json()
-	config['DB_URL'] = os.environ.get('DB_URL', req['DB_URL'])
-	config['DB_UPLOAD'] = os.environ.get('DB_UPLOAD', req['DB_UPLOAD'])
-	config['PB_DOWNLOAD'] = os.environ.get('PB_DOWNLOAD', req['PB_DOWNLOAD'])
+	req = requests.get(os.environ.get('API_URL')+"/status/db-url", timeout=10).json()
+	config['DB_URL'] = os.environ.get('DB_URL', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/db-archive", timeout=10).json()
+	config['DB_UPLOAD'] = os.environ.get('DB_UPLOAD', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/pb-archive", timeout=10).json()
+	config['PB_DOWNLOAD'] = os.environ.get('PB_DOWNLOAD', req['result'])
+
 	config['PB_PATH'] = os.environ.get('PB_PATH', PB_OUTPUT_DIR)
-	config['SLEEP_TIME'] = os.environ.get('SLEEP_TIME', req['SLEEP_TIME'])
-	config['SLEEP_ADAPTIVE'] = os.environ.get('SLEEP_ADAPTIVE', req['SLEEP_ADAPTIVE'])
-	config['URL_TRIP_UPDATES_ENABLED'] = os.environ.get('URL_TRIP_UPDATES_ENABLED', req['URL_TRIP_UPDATES_ENABLED'])
-	config['URL_TRIP_UPDATES'] = os.environ.get('URL_TRIP_UPDATES', req['URL_TRIP_UPDATES'])
-	config['URL_VEHICLE_POSITIONS_ENABLED'] = os.environ.get('URL_VEHICLE_POSITIONS_ENABLED', req['URL_VEHICLE_POSITIONS_ENABLED'])
-	config['URL_VEHICLE_POSITIONS'] = os.environ.get('URL_VEHICLE_POSITIONS', req['URL_VEHICLE_POSITIONS'])
-	config['URL_ALERTS_ENABLED'] = os.environ.get('URL_ALERTS_ENABLED', req['URL_ALERTS_ENABLED'])
-	config['URL_ALERTS'] = os.environ.get('URL_ALERTS', req['URL_ALERTS'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-request-interval", timeout=10).json()
+	config['SLEEP_TIME'] = os.environ.get('SLEEP_TIME', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-request-adaptive", timeout=10).json()
+	config['SLEEP_ADAPTIVE'] = os.environ.get('SLEEP_ADAPTIVE', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-trip-enabled", timeout=10).json()
+	config['URL_TRIP_UPDATES_ENABLED'] = os.environ.get('URL_TRIP_UPDATES_ENABLED', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-trip-url", timeout=10).json()
+	config['URL_TRIP_UPDATES'] = os.environ.get('URL_TRIP_UPDATES', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-vehicle-enabled", timeout=10).json()
+	config['URL_VEHICLE_POSITIONS_ENABLED'] = os.environ.get('URL_VEHICLE_POSITIONS_ENABLED', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-vehicle-url", timeout=10).json()
+	config['URL_VEHICLE_POSITIONS'] = os.environ.get('URL_VEHICLE_POSITIONS', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-alerts-enabled", timeout=10).json()
+	config['URL_ALERTS_ENABLED'] = os.environ.get('URL_ALERTS_ENABLED', req['result'])
+
+	req = requests.get(os.environ.get('API_URL')+"/status/gtfsrt-alerts-url", timeout=10).json()
+	config['URL_ALERTS'] = os.environ.get('URL_ALERTS', req['result'])
+
 else:
 	config['DB_URL'] = os.environ.get('DB_URL')
 	config['DB_UPLOAD'] = os.environ.get('DB_UPLOAD')
