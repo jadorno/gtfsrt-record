@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY gtfsrdb.py ./
+COPY record.py ./
 COPY protobuf ./
 
-CMD [ "python", "-u", "./gtfsrdb.py", "config.json"]
+CMD [ "python", "-u", "./record.py"]
