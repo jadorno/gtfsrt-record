@@ -14,39 +14,32 @@ PB_OUTPUT_DIR = "data"
 config = {}
 
 if os.environ.get('API_URL') is not None:
-	req = requests.get(os.environ.get('API_URL')+"/status/config/db-url", timeout=10).json()
+
+	parameters = {'source':os.environ.get('DATASET')}
+
+	req = requests.get(os.environ.get('API_URL')+"/status/config/db-url", params=parameters, timeout=10).json()
 	config['DB_URL'] = os.environ.get('DB_URL', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/db-archive", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/db-archive", params=parameters, timeout=10).json()
 	config['DB_UPLOAD'] = os.environ.get('DB_UPLOAD', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/pb-archive", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/pb-archive", params=parameters, timeout=10).json()
 	config['PB_DOWNLOAD'] = os.environ.get('PB_DOWNLOAD', req['result'])
 
 	config['PB_PATH'] = os.environ.get('PB_PATH', PB_OUTPUT_DIR)
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-request-interval", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-request-interval", params=parameters, timeout=10).json()
 	config['SLEEP_TIME'] = os.environ.get('SLEEP_TIME', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-request-adaptive", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-request-adaptive", params=parameters, timeout=10).json()
 	config['SLEEP_ADAPTIVE'] = os.environ.get('SLEEP_ADAPTIVE', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-trip-enabled", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-trip-enabled", params=parameters, timeout=10).json()
 	config['URL_TRIP_UPDATES_ENABLED'] = os.environ.get('URL_TRIP_UPDATES_ENABLED', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-trip-url", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-trip-url", params=parameters, timeout=10).json()
 	config['URL_TRIP_UPDATES'] = os.environ.get('URL_TRIP_UPDATES', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-vehicle-enabled", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-vehicle-enabled", params=parameters, timeout=10).json()
 	config['URL_VEHICLE_POSITIONS_ENABLED'] = os.environ.get('URL_VEHICLE_POSITIONS_ENABLED', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-vehicle-url", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-vehicle-url", params=parameters, timeout=10).json()
 	config['URL_VEHICLE_POSITIONS'] = os.environ.get('URL_VEHICLE_POSITIONS', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-alerts-enabled", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-alerts-enabled", params=parameters, timeout=10).json()
 	config['URL_ALERTS_ENABLED'] = os.environ.get('URL_ALERTS_ENABLED', req['result'])
-
-	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-alerts-url", timeout=10).json()
+	req = requests.get(os.environ.get('API_URL')+"/status/config/gtfsrt-alerts-url", params=parameters, timeout=10).json()
 	config['URL_ALERTS'] = os.environ.get('URL_ALERTS', req['result'])
 
 else:
@@ -63,7 +56,7 @@ else:
 	config['URL_ALERTS_ENABLED'] = os.environ.get('URL_ALERTS_ENABLED')
 	config['URL_ALERTS'] = os.environ.get('URL_ALERTS')
 
-if not config['DB_UPLOAD'] == 'true' and not config['PB_DOWNLOAD'] == 'true':
+if not config['DB_UPLOAD'] == True and not config['PB_DOWNLOAD'] == True:
 	print("You have Protobuffer Download and Database Upload Disabled.")
 	print("The program doesn't do anything else.")
 	exit()
@@ -71,17 +64,17 @@ if not config['DB_UPLOAD'] == 'true' and not config['PB_DOWNLOAD'] == 'true':
 sleep_time = int(config['SLEEP_TIME'])
 gtfsrt_enabled = []
 gtfsrt_url = {}
-if config['URL_TRIP_UPDATES_ENABLED'] == 'true':
+if config['URL_TRIP_UPDATES_ENABLED'] == True:
 	gtfsrt_enabled.append('trip_updates')
 	gtfsrt_url['trip_updates'] = config['URL_TRIP_UPDATES']
-if config['URL_VEHICLE_POSITIONS_ENABLED'] == 'true':
+if config['URL_VEHICLE_POSITIONS_ENABLED'] == True:
 	gtfsrt_enabled.append('vehicle_positions')
 	gtfsrt_url['vehicle_positions'] = config['URL_VEHICLE_POSITIONS']
-if config['URL_ALERTS_ENABLED'] == 'true':
+if config['URL_ALERTS_ENABLED'] == True:
 	gtfsrt_enabled.append('alerts')
 	gtfsrt_url['alerts'] = config['URL_ALERTS']
 
-if config['DB_UPLOAD'] == 'true':
+if config['DB_UPLOAD'] == True:
 	import pymongo
 
 	client = pymongo.MongoClient(config['DB_URL'])
@@ -116,7 +109,7 @@ while True:
 			fm.ParseFromString(r.content)
 			data = json.loads(MessageToJson(fm))
 
-			if config['PB_DOWNLOAD'] == 'true':
+			if config['PB_DOWNLOAD'] == True:
 				outputFile = config['PB_PATH']+'/'+data['header']['timestamp']+"_"+table_name+".pb"
 				if os.path.isfile(outputFile):
 					print(str(data['header']['timestamp']),"- Protobuf File Duplicate on "+outputFile)
@@ -126,7 +119,7 @@ while True:
 				f.close()
 				print(data['header']['timestamp'],"- Protobuf File Written on "+outputFile)
 
-			if config['DB_UPLOAD'] == 'true':
+			if config['DB_UPLOAD'] == True:
 				data['header']['timestamp'] = int(data['header']['timestamp'])
 				try:
 					db[table_name].insert_one(data)
@@ -150,7 +143,7 @@ while True:
 			print("Missing Value in Protobuffer from: "+gtfsrt_url[table_name])
 			print(e)
 
-	if config['SLEEP_ADAPTIVE'] == 'true' and increase_sleep:
+	if config['SLEEP_ADAPTIVE'] == True and increase_sleep:
 		sleep_time = sleep_time + 5
 		print("Increased Sleep Time to "+str(sleep_time))
 	else: 
