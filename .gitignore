@@ -1,4 +1,6 @@
- protobuf
+protobuf
+Dockerfile.devel
+Dockerfile.local
 
 # Logs
 logs
