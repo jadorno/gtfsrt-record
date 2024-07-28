@@ -1,4 +1,4 @@
-FROM alpine/git as protobuf
+FROM docker.io/alpine/git as protobuf
 
 WORKDIR /usr/src/
 RUN git clone https://github.com/MobilityData/gtfs-realtime-bindings.git
@@ -6,7 +6,7 @@ RUN git clone https://github.com/MobilityData/gtfs-realtime-bindings.git
 WORKDIR /usr/src/gtfs-realtime-bindings
 RUN git checkout tags/final-google-version
 
-FROM python:3.8-buster
+FROM docker.io/python:3.8-buster
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends p7zip-full\
